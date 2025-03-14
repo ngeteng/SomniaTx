@@ -70,18 +70,51 @@ async function mainMenu() {
       }
       await pause();
       break;
+
     case 'executeSwaps':
-      console.log('Execute Swaps - coming soon...'.green);
+      const { swapOption } = await inquirer.prompt([
+        {
+          type: 'list',
+          name: 'swapOption',
+          message: 'Select a Swap Method:',
+          choices: [
+            { name: '1. SomniaSwap', value: 'somniaSwap' }
+          ],
+        },
+      ]);
+      if (swapOption === 'somniaSwap') {
+        const { somniaChoice } = await inquirer.prompt([
+          {
+            type: 'list',
+            name: 'somniaChoice',
+            message: 'What types of Swaps would you like to do?',
+            choices: [
+              { name: '1. Manual Swap', value: 'manual' },
+              { name: '2. Automatic Swaps', value: 'random' }
+            ],
+          },
+        ]);
+        if (somniaChoice === 'manual') {
+          console.log('Launching Manual Swap...'.green);
+          await runScript('actions/SomniaSwap/swap.js');
+        } else if (somniaChoice === 'random') {
+          console.log('Launching Automatic Swaps...'.green);
+          await runScript('actions/SomniaSwap/random.js');
+        }
+      }
       await pause();
       break;
+
     case 'deployContract':
       console.log('Deploy Contract - coming soon...'.green);
       await pause();
       break;
+
     case 'specificApp':
       console.log('Use Specific App - coming soon...'.green);
       await pause();
       break;
+
     case 'checkWalletStuff':
       const { walletChoice } = await inquirer.prompt([
         {
@@ -103,9 +136,11 @@ async function mainMenu() {
       }
       await pause();
       break;
+
     case 'exit':
       console.log('Exiting...'.green);
       process.exit(0);
+
     default:
       break;
   }

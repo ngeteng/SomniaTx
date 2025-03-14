@@ -11,10 +11,10 @@ SomniaTestnet/
 │   │   ├── claim.js                          # Main script to allow users to claim tokens from the official faucet.
 │   │   └── scripts/                          # Auxiliary scripts for faucet operations.
 │   │       └── apis.js                       # Handles API interactions for faucet operations.
-│   ├── SomniaSwap/                           # Contains scripts for the SomniaSwap module (To be implemented).
-│   │   ├── ABI.js                            # Exports the ABI definitions for SomniaSwap contracts (To be implemented).
-│   │   ├── swap.js                           # Handles swap operations for SomniaSwap (To be implemented).
-│   │   └── launch.js                         # Script to launch the SomniaSwap module (To be implemented).
+│   ├── SomniaSwap/                           # Contains scripts for the SomniaSwap module
+│   │   ├── ABI.js                            # Exports the ABI definitions for SomniaSwap contracts
+│   │   ├── swap.js                           # Handles swap operations for SomniaSwap 
+│   │   └── random.js                         # Automatized Script to perform random number of Tx's Swaps in Main Somnia Swap
 ├── index.js                                  # Main script to bootstrap and initialize the SomniaTestnet project.
 ├── node_modules/                             # Contains all installed npm packages and dependencies.
 ├── package.json                              # Project metadata and dependency definitions.
