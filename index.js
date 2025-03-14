@@ -46,6 +46,7 @@ async function mainMenu() {
         { name: '2. Execute Swaps', value: 'executeSwaps' },
         { name: '3. Deploy Contract', value: 'deployContract' },
         { name: '4. Use Specific App', value: 'specificApp' },
+        { name: '5. Check Wallet Stuff', value: 'checkWalletStuff' },
         { name: '0. Exit', value: 'exit' }
       ],
     },
@@ -79,6 +80,27 @@ async function mainMenu() {
       break;
     case 'specificApp':
       console.log('Use Specific App - coming soon...'.green);
+      await pause();
+      break;
+    case 'checkWalletStuff':
+      const { walletChoice } = await inquirer.prompt([
+        {
+          type: 'list',
+          name: 'walletChoice',
+          message: 'Select an option:',
+          choices: [
+            { name: '1. Check Current Wallet Balances', value: 'balance' },
+            { name: '2. Check Total Tx\'s Made Per Wallet', value: 'txCount' }
+          ],
+        },
+      ]);
+      if (walletChoice === 'balance') {
+        console.log('Launching Balance Checker...'.green);
+        await runScript('utils/balanceChecker.js');
+      } else if (walletChoice === 'txCount') {
+        console.log('Launching Transaction Counter...'.green);
+        await runScript('utils/txCount.js');
+      }
       await pause();
       break;
     case 'exit':

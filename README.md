@@ -10,22 +10,24 @@ SomniaTestnet/
 │   ├── official_faucet/                      # Contains scripts related to the official faucet functionalities.
 │   │   ├── claim.js                          # Main script to allow users to claim tokens from the official faucet.
 │   │   └── scripts/                          # Auxiliary scripts for faucet operations.
-│   │       └── apis.js                       # Script that handles API interactions for faucet operations.
+│   │       └── apis.js                       # Handles API interactions for faucet operations.
 │   ├── SomniaSwap/                           # Contains scripts for the SomniaSwap module (To be implemented).
 │   │   ├── ABI.js                            # Exports the ABI definitions for SomniaSwap contracts (To be implemented).
 │   │   ├── swap.js                           # Handles swap operations for SomniaSwap (To be implemented).
 │   │   └── launch.js                         # Script to launch the SomniaSwap module (To be implemented).
 ├── index.js                                  # Main script to bootstrap and initialize the SomniaTestnet project.
-├── node_modules/                             # Contains all the installed npm packages and dependencies.
+├── node_modules/                             # Contains all installed npm packages and dependencies.
 ├── package.json                              # Project metadata and dependency definitions.
-├── package-lock.json                         # Automatically generated file that locks the versions of dependencies.
+├── package-lock.json                         # Automatically generated file locking dependency versions.
 ├── README.md                                 # Documentation file with project overview and usage instructions.
 └── utils/                                    # Utility scripts and helper modules for various operations.
-    ├── chain.js                              # Module handling blockchain interactions and core chain functionalities.
-    ├── proxies.txt                           # File with proxies generated from 2CAPTCHA in format socks5://login:pass@ip:port.
-    ├── wallet_aggregator.js                  # Script to aggregate and manage wallet information.
-    ├── wallet_generator.js                   # Module responsible for generating new wallet instances.
-    └── wallets.json                          # JSON file storing wallet configurations and data.
+    ├── chain.js                              # Contains RPC URL, chain ID, token symbol, and explorer links.
+    ├── proxies.txt                           # Lists proxies (socks5 format) generated from 2CAPTCHA.
+    ├── wallet_aggregator.js                  # Aggregates and manages wallet information.
+    ├── wallet_generator.js                   # Generates new wallet instances.
+    ├── wallets.json                          # Stores wallet configurations and data.
+    ├── balanceChecker.js                     # Checks and displays the current balance of each wallet.
+    └── txCount.js                            # Checks and displays the total number of transactions per wallet.
 
 ```
 
