@@ -1,7 +1,7 @@
-// File: SomniaTestnet/actions/SomniaSwap/swap.js
 const fs = require('fs');
+const path = require('path');
 const inquirer = require('inquirer');
-const { ethers, BigNumber } = require('ethers');
+const { ethers } = require('ethers');
 const colors = require('colors');
 
 const chain = require('../../utils/chain.js');
@@ -9,7 +9,8 @@ const { ABI, PONG_CONTRACT, PING_CONTRACT, ROUTER_CONTRACT } = require('./ABI.js
 
 let wallets = [];
 try {
-  wallets = JSON.parse(fs.readFileSync('../../utils/wallets.json', 'utf8'));
+  const walletsPath = path.join(__dirname, '..', '..', 'utils', 'wallets.json');
+  wallets = JSON.parse(fs.readFileSync(walletsPath, 'utf8'));
 } catch (error) {
   console.error('Error reading wallets.json:'.red, error);
   process.exit(1);
@@ -28,9 +29,7 @@ if (!swapAbi) {
   process.exit(1);
 }
 
-const routerInterface = new ethers.utils.Interface([swapAbi]);
 const provider = new ethers.providers.JsonRpcProvider(chain.RPC_URL, chain.CHAIN_ID);
-
 const tokens = [
   { name: 'PONG', address: PONG_CONTRACT },
   { name: 'PING', address: PING_CONTRACT }
@@ -144,4 +143,5 @@ async function main() {
   }
   console.log('\nAll done! Exiting swap script.'.blue);
 }
+
 main();

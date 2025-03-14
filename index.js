@@ -83,23 +83,39 @@ async function mainMenu() {
         },
       ]);
       if (swapOption === 'somniaSwap') {
-        const { somniaChoice } = await inquirer.prompt([
+        const { somniaAction } = await inquirer.prompt([
           {
             type: 'list',
-            name: 'somniaChoice',
-            message: 'What types of Swaps would you like to do?',
+            name: 'somniaAction',
+            message: 'What would you like to do?',
             choices: [
-              { name: '1. Manual Swap', value: 'manual' },
-              { name: '2. Automatic Swaps', value: 'random' }
-            ],
-          },
+              { name: '1. Perform Swaps', value: 'performSwaps' },
+              { name: '2. Claim Tokens', value: 'claimTokens' }
+            ]
+          }
         ]);
-        if (somniaChoice === 'manual') {
-          console.log('Launching Manual Swap...'.green);
-          await runScript('actions/SomniaSwap/swap.js');
-        } else if (somniaChoice === 'random') {
-          console.log('Launching Automatic Swaps...'.green);
-          await runScript('actions/SomniaSwap/random.js');
+        if (somniaAction === 'performSwaps') {
+          const { somniaChoice } = await inquirer.prompt([
+            {
+              type: 'list',
+              name: 'somniaChoice',
+              message: 'Select Swap Method:',
+              choices: [
+                { name: '1. Manual Swap', value: 'manual' },
+                { name: '2. Automatic Swaps', value: 'random' }
+              ]
+            }
+          ]);
+          if (somniaChoice === 'manual') {
+            console.log('Launching Manual Swap...'.green);
+            await runScript('actions/SomniaSwap/swap.js');
+          } else if (somniaChoice === 'random') {
+            console.log('Launching Automatic Swaps...'.green);
+            await runScript('actions/SomniaSwap/random.js');
+          }
+        } else if (somniaAction === 'claimTokens') {
+          console.log('Launching Claim Tokens...'.green);
+          await runScript('actions/SomniaSwap/mint.js');
         }
       }
       await pause();
