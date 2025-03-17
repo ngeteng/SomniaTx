@@ -15,11 +15,27 @@ SomniaTestnet/
 │   │   ├── ABI.js                            # Exports the ABI definitions for SomniaSwap contracts.
 │   │   ├── swap.js                           # Handles swap operations for SomniaSwap.
 │   │   └── random.js                         # Automated script to perform a random number of swap transactions.
-│   └── memecoin_trading_contest/             # New directory for memecoin trading contest operations.
-│       ├── ABI.js                            # Contains contract addresses and ABI definitions for memecoin trading contest.
-│       ├── mint.js                           # Script for minting tokens (only once per wallet) for the contest.
-│       ├── random.js                         # Automated script to perform a random number of swap transactions for contest tokens.
-│       └── swap.js                           # Handles swap operations for contest tokens with custom logic.
+│   ├── memecoin_trading_contest/             # Contains scripts for the memecoin trading contest.
+│   │   ├── ABI.js                            # Contains contract addresses and ABI definitions for the contest.
+│   │   ├── mint.js                           # Script for minting tokens (only once per wallet) for the contest.
+│   │   ├── random.js                         # Automated script to perform a random number of swap transactions for contest tokens.
+│   │   └── swap.js                           # Handles swap operations for contest tokens with custom logic.
+│   └── deployContract/                       # New directory for deploying contracts.
+│       ├── deploy_contract/                # For general smart contract deployment.
+│       │   ├── ABI.js                      # Exports the ABI for the contract.
+│       │   ├── compilate.js                # Script to compile the contract.
+│       │   ├── contract.sol                # Solidity source code for the contract.
+│       │   └── deploy.js                   # Script to deploy the compiled contract.
+│       ├── deploy_nft/                     # For NFT contract deployment.
+│       │   ├── ABI.js                      # Exports the ABI for the NFT contract.
+│       │   ├── compilate.js                # Script to compile the NFT contract.
+│       │   ├── contract.sol                # Solidity source code for the NFT contract.
+│       │   └── deploy.js                   # Script to deploy the compiled NFT contract.
+│       └── deploy_token/                   # For token contract deployment.
+│           ├── ABI.js                      # Exports the ABI for the token contract.
+│           ├── compilate.js                # Script to compile the token contract.
+│           ├── contract.sol                # Solidity source code for the token contract.
+│           └── deploy.js                   # Script to deploy the compiled token contract.
 ├── index.js                                  # Main script to bootstrap and initialize the SomniaTestnet project.
 ├── node_modules/                             # Contains all installed npm packages and dependencies.
 ├── package.json                              # Project metadata and dependency definitions.
