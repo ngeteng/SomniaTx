@@ -47,6 +47,7 @@ async function mainMenu() {
         { name: '3. Deploy Contract', value: 'deployContract' },
         { name: '4. Use Specific App', value: 'specificApp' },
         { name: '5. Check Wallet Stuff', value: 'checkWalletStuff' },
+        { name: '6. Perform Specific Action', value: 'performSpecificAction' },
         { name: '0. Exit', value: 'exit' }
       ],
     },
@@ -149,6 +150,57 @@ async function mainMenu() {
       } else if (walletChoice === 'txCount') {
         console.log('Launching Transaction Counter...'.green);
         await runScript('utils/txCount.js');
+      }
+      await pause();
+      break;
+
+    case 'performSpecificAction':
+      // New option for the Trading Meme Contest
+      const { contestChoice } = await inquirer.prompt([
+        {
+          type: 'list',
+          name: 'contestChoice',
+          message: 'Participate in Trading Meme Contest:',
+          choices: [
+            { name: '1. Participate in Trading Meme Contest', value: 'tradingContest' }
+          ]
+        }
+      ]);
+      if (contestChoice === 'tradingContest') {
+        const { contestAction } = await inquirer.prompt([
+          {
+            type: 'list',
+            name: 'contestAction',
+            message: 'What would you like to do?',
+            choices: [
+              { name: '1. Perform Swaps', value: 'performSwaps' },
+              { name: '2. Mint Tokens', value: 'mintTokens' }
+            ]
+          }
+        ]);
+        if (contestAction === 'performSwaps') {
+          const { swapType } = await inquirer.prompt([
+            {
+              type: 'list',
+              name: 'swapType',
+              message: 'What types of swaps would you like to do?',
+              choices: [
+                { name: '1. Manual Swaps', value: 'manual' },
+                { name: '2. Automatic Swaps', value: 'random' }
+              ]
+            }
+          ]);
+          if (swapType === 'manual') {
+            console.log('Launching Manual Swap (Trading Meme Contest)...'.green);
+            await runScript('actions/memecoin_trading_contest/swap.js');
+          } else if (swapType === 'random') {
+            console.log('Launching Automatic Swaps (Trading Meme Contest)...'.green);
+            await runScript('actions/memecoin_trading_contest/random.js');
+          }
+        } else if (contestAction === 'mintTokens') {
+          console.log('Launching Mint Tokens (Trading Meme Contest)...'.green);
+          await runScript('actions/memecoin_trading_contest/mint.js');
+        }
       }
       await pause();
       break;

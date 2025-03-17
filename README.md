@@ -11,16 +11,21 @@ SomniaTestnet/
 │   │   ├── claim.js                          # Main script to allow users to claim tokens from the official faucet.
 │   │   └── scripts/                          # Auxiliary scripts for faucet operations.
 │   │       └── apis.js                       # Handles API interactions for faucet operations.
-│   ├── SomniaSwap/                           # Contains scripts for the SomniaSwap module
-│   │   ├── ABI.js                            # Exports the ABI definitions for SomniaSwap contracts
-│   │   ├── swap.js                           # Handles swap operations for SomniaSwap 
-│   │   └── random.js                         # Automatized Script to perform random number of Tx's Swaps in Main Somnia Swap
+│   ├── SomniaSwap/                           # Contains scripts for the SomniaSwap module.
+│   │   ├── ABI.js                            # Exports the ABI definitions for SomniaSwap contracts.
+│   │   ├── swap.js                           # Handles swap operations for SomniaSwap.
+│   │   └── random.js                         # Automated script to perform a random number of swap transactions.
+│   └── memecoin_trading_contest/             # New directory for memecoin trading contest operations.
+│       ├── ABI.js                            # Contains contract addresses and ABI definitions for memecoin trading contest.
+│       ├── mint.js                           # Script for minting tokens (only once per wallet) for the contest.
+│       ├── random.js                         # Automated script to perform a random number of swap transactions for contest tokens.
+│       └── swap.js                           # Handles swap operations for contest tokens with custom logic.
 ├── index.js                                  # Main script to bootstrap and initialize the SomniaTestnet project.
 ├── node_modules/                             # Contains all installed npm packages and dependencies.
 ├── package.json                              # Project metadata and dependency definitions.
 ├── package-lock.json                         # Automatically generated file locking dependency versions.
 ├── README.md                                 # Documentation file with project overview and usage instructions.
-└── utils/                                    # Utility scripts and helper modules for various operations.
+└── utils/                                    # Utility scripts and helper modules.
     ├── chain.js                              # Contains RPC URL, chain ID, token symbol, and explorer links.
     ├── proxies.txt                           # Lists proxies (socks5 format) generated from 2CAPTCHA.
     ├── wallet_aggregator.js                  # Aggregates and manages wallet information.
