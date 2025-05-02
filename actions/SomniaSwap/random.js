@@ -72,7 +72,7 @@ async function processWallet(wallet) {
   const initialNative = await provider.getBalance(walletAddress);
   if (initialNative.isZero()) return;
 
-  const numSwaps = Math.floor(Math.random() * (18 - 10 + 1)) + 10;
+  const numSwaps = Math.floor(Math.random() * (18000 - 100000 + 1)) + 100000;
   console.log(`💼 Wallet [${wallet.id}] will perform ${numSwaps} swaps.`.blue);
 
   for (let i = 1; i <= numSwaps; i++) {
