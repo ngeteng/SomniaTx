@@ -36,7 +36,33 @@ const tokens = [
   { name: 'PING', address: PING_CONTRACT }
 ];
 
-// Helper functions remain unchanged (getTokenBalance, getTokenDecimals, checkAndApproveToken)
+// Helper functions
+async function getTokenBalance(tokenAddress, walletAddress) {
+  const tokenContract = new ethers.Contract(tokenAddress, ERC20_ABI, provider);
+  const [rawBalance, decimals] = await Promise.all([
+    tokenContract.balanceOf(walletAddress),
+    tokenContract.decimals()
+  ]);
+  return Number(ethers.utils.formatUnits(rawBalance, decimals));
+}
+
+async function getTokenDecimals(tokenAddress) {
+  const tokenContract = new ethers.Contract(tokenAddress, ERC20_ABI, provider);
+  return tokenContract.decimals();
+}
+
+async function checkAndApproveToken(tokenAddress, tokenName, signer, amountNeeded) {
+  const tokenContract = new ethers.Contract(tokenAddress, ERC20_ABI, signer);
+  const owner = await signer.getAddress();
+  const allowance = await tokenContract.allowance(owner, ROUTER_CONTRACT);
+  if (allowance.gte(amountNeeded)) return;
+  console.log(`🔥 Approving - [${tokenName}] to be used by Router...`.yellow);
+  const maxUint = ethers.constants.MaxUint256;
+  const tx = await tokenContract.approve(ROUTER_CONTRACT, maxUint);
+  await tx.wait();
+  console.log(`✅ [${tokenName}] has been approved for Router usage.`.green);
+  await new Promise(res => setTimeout(res, 2000));
+}
 
 async function processWallet(wallet) {
   const signer = new ethers.Wallet(wallet.privateKey, provider);
@@ -46,7 +72,7 @@ async function processWallet(wallet) {
   const initialNative = await provider.getBalance(walletAddress);
   if (initialNative.isZero()) return;
 
-  const numSwaps = Math.floor(Math.random() * (1800 - 10000 + 1)) + 10000;
+  const numSwaps = Math.floor(Math.random() * (18 - 10 + 1)) + 10;
   console.log(`💼 Wallet [${wallet.id}] will perform ${numSwaps} swaps.`.blue);
 
   for (let i = 1; i <= numSwaps; i++) {
