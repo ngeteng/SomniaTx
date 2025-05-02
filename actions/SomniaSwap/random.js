@@ -81,7 +81,7 @@ async function processWallet(wallet) {
     return;
   }
 
-  const numSwaps = Math.floor(Math.random() * (1008 - 10000 + 1)) + 10;
+  const numSwaps = Math.floor(Math.random() * (1008 - 10000 + 1)) + 10000;
   console.log(`💼 Wallet [${wallet.id}] will perform ${numSwaps} swaps.`.blue);
 
   for (let i = 1; i <= numSwaps; i++) {
