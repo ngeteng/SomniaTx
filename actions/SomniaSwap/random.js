@@ -143,9 +143,15 @@ async function processWallet(wallet) {
       }
     }
 
-    // Delay before next swap
-    await new Promise(r => setTimeout(r, 3000));
+    // Delay sebelum next swap
+    await new Promise(r => setTimeout(r, 10000));   // delay 3 detik yang sudah ada
+    // Tambahan: delay 35 detik
+    await new Promise(r => setTimeout(r, 35000));
   }
+
+  // Tambahan: delay 35 detik sebelum lanjut ke wallet berikutnya
+  console.log(`⏳ Menunggu 35 detik sebelum melanjutkan ke wallet berikutnya...`.yellow);
+  await new Promise(res => setTimeout(res, 35000));
 }
 
 async function main() {
