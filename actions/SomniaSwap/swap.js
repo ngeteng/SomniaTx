@@ -109,13 +109,20 @@ async function main() {
       // =======================================================
 
       // Tanyakan lagi
-      const { again } = await inquirer.prompt({
-        type: 'confirm',
-        name: 'again',
-        message: 'Swap lagi dengan wallet yang sama?',
-        default: false,
-      });
-      keepSwapping = again;
+if (walletInfo.auto) {
+  console.log('Mode otomatis aktif, menunggu 33 detik sebelum swap berikutnya...');
+  await sleep(33000);
+  keepSwapping = true;
+} else {
+  const { again } = await inquirer.prompt({
+    type: 'confirm',
+    name: 'again',
+    message: 'Swap lagi dengan wallet yang sama?',
+    default: false,
+  });
+  keepSwapping = again;
+}
+
     }
   }
 }
