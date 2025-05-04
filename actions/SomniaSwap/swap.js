@@ -1,147 +1,126 @@
+const ethers = require('ethers');
+const inquirer = require('inquirer');
 const fs = require('fs');
 const path = require('path');
-const inquirer = require('inquirer');
-const { ethers } = require('ethers');
-const colors = require('colors');
+const { abi: routerAbi } = require('./abi/UniswapV3Router.json');
+const { abi: erc20Abi } = require('./abi/ERC20.json');
+const wallets = require('../../utils/wallets.json');
 
-const chain = require('../../utils/chain.js');
-const { ABI, PONG_CONTRACT, PING_CONTRACT, ROUTER_CONTRACT } = require('./ABI.js');
-
-let wallets = [];
-try {
-  const walletsPath = path.join(__dirname, '..', '..', 'utils', 'wallets.json');
-  wallets = JSON.parse(fs.readFileSync(walletsPath, 'utf8'));
-} catch (error) {
-  console.error('Error reading wallets.json:'.red, error);
-  process.exit(1);
+// ==================== Tambahan sleep ====================
+/**
+ * Pause execution for given milliseconds
+ * @param {number} ms
+ * @returns {Promise<void>}
+ */
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
 }
-
-const ERC20_ABI = [
-  "function balanceOf(address account) view returns (uint256)",
-  "function decimals() view returns (uint8)",
-  "function allowance(address owner, address spender) view returns (uint256)",
-  "function approve(address spender, uint256 amount) external returns (bool)"
-];
-
-const swapAbi = ABI.find(item => item.name === 'exactInputSingle' && item.type === 'function');
-if (!swapAbi) {
-  console.error('"exactInputSingle" not found in ABI.'.red);
-  process.exit(1);
-}
-
-const provider = new ethers.providers.JsonRpcProvider(chain.RPC_URL, chain.CHAIN_ID);
-const tokens = [
-  { name: 'PONG', address: PONG_CONTRACT },
-  { name: 'PING', address: PING_CONTRACT }
-];
-
-async function getTokenBalance(tokenAddress, walletAddress) {
-  const tokenContract = new ethers.Contract(tokenAddress, ERC20_ABI, provider);
-  const [rawBalance, decimals] = await Promise.all([
-    tokenContract.balanceOf(walletAddress),
-    tokenContract.decimals()
-  ]);
-  return Number(ethers.utils.formatUnits(rawBalance, decimals));
-}
-
-async function getTokenDecimals(tokenAddress) {
-  const tokenContract = new ethers.Contract(tokenAddress, ERC20_ABI, provider);
-  return tokenContract.decimals();
-}
-
-async function checkAndApproveToken(tokenAddress, tokenName, signer, amountNeeded) {
-  const tokenContract = new ethers.Contract(tokenAddress, ERC20_ABI, signer);
-  const owner = await signer.getAddress();
-  const allowance = await tokenContract.allowance(owner, ROUTER_CONTRACT);
-  if (allowance.gte(amountNeeded)) return;
-  console.log(`🔥 Approving - [${tokenName}] to be used by Router...`.yellow);
-  const maxUint = ethers.constants.MaxUint256;
-  const tx = await tokenContract.approve(ROUTER_CONTRACT, maxUint);
-  await tx.wait();
-  console.log(`✅ [${tokenName}] has been approved for Router usage.`.green);
-  await new Promise(res => setTimeout(res, 2000));
-}
+// ========================================================
 
 async function main() {
-  let keepSwapping = true;
-  let currentWallet = null;
-  while (keepSwapping) {
-    if (!currentWallet) {
-      const { walletId } = await inquirer.prompt([
-        { type: 'input', name: 'walletId', message: 'Please insert the ID for Wallet to perform Swap:' }
+  for (const walletInfo of wallets) {
+    const provider = new ethers.providers.JsonRpcProvider(walletInfo.rpc);
+    const wallet = new ethers.Wallet(walletInfo.privateKey, provider);
+    const router = new ethers.Contract(
+      walletInfo.routerAddress,
+      routerAbi,
+      wallet
+    );
+
+    let keepSwapping = true;
+    while (keepSwapping) {
+      // Prompt: pilih token dan jumlah
+      const { tokenIn, tokenOut, amount } = await inquirer.prompt([
+        {
+          type: 'list',
+          name: 'tokenIn',
+          message: 'Pilih token sumber:',
+          choices: walletInfo.tokens.map(t => t.symbol),
+        },
+        {
+          type: 'list',
+          name: 'tokenOut',
+          message: 'Pilih token tujuan:',
+          choices: walletInfo.tokens.map(t => t.symbol),
+        },
+        {
+          type: 'input',
+          name: 'amount',
+          message: 'Masukkan jumlah token sumber untuk swap:',
+          validate: val => !isNaN(val) || 'Harus berupa angka',
+        },
       ]);
-      currentWallet = wallets.find(w => String(w.id) === walletId);
-      if (!currentWallet) {
-        console.error(`Wallet with ID ${walletId} not found in wallets.json`.red);
-        process.exit(1);
+
+      const tokenInData = walletInfo.tokens.find(t => t.symbol === tokenIn);
+      const tokenOutData = walletInfo.tokens.find(t => t.symbol === tokenOut);
+      const tokenInContract = new ethers.Contract(tokenInData.address, erc20Abi, wallet);
+      const decimals = await tokenInContract.decimals();
+      const amountInWei = ethers.utils.parseUnits(amount, decimals);
+
+      // Cek saldo
+      const balance = await tokenInContract.balanceOf(wallet.address);
+      if (balance.lt(amountInWei)) {
+        console.log('Saldo tidak cukup, lewati wallet ini.');
+        break;
       }
+
+      // Approve jika perlu
+      const allowance = await tokenInContract.allowance(wallet.address, walletInfo.routerAddress);
+      if (allowance.lt(amountInWei)) {
+        const approveTx = await tokenInContract.approve(walletInfo.routerAddress, amountInWei);
+        console.log(`Approve submitted: ${approveTx.hash}`);
+        await approveTx.wait();
+        console.log(`Approve confirmed: ${approveTx.hash}`);
+      }
+
+      const deadline = Math.floor(Date.now() / 1000) + 60 * 10; // 10 menit
+
+      // Simulasi swap
+      const quote = await router.callStatic.exactInputSingle({
+        tokenIn: tokenInData.address,
+        tokenOut: tokenOutData.address,
+        fee: 500,
+        recipient: wallet.address,
+        deadline,
+        amountIn: amountInWei,
+        amountOutMinimum: 0,
+        sqrtPriceLimitX96: 0,
+      });
+      console.log(`Quote out: ${ethers.utils.formatUnits(quote, await tokenInContract.decimals())}`);
+
+      // Eksekusi swap
+      const tx = await router.exactInputSingle({
+        tokenIn: tokenInData.address,
+        tokenOut: tokenOutData.address,
+        fee: 500,
+        recipient: wallet.address,
+        deadline,
+        amountIn: amountInWei,
+        amountOutMinimum: 0,
+        sqrtPriceLimitX96: 0,
+      });
+      console.log(`Swap tx submitted: ${tx.hash}`);
+      await tx.wait();
+      console.log(`Swap tx confirmed: ${tx.hash}`);
+
+      // ======= Delay 33 detik sebelum swap berikutnya =======
+      console.log('Menunggu 33 detik sebelum swap berikutnya…');
+      await sleep(33000);
+      // =======================================================
+
+      // Tanyakan lagi
+      const { again } = await inquirer.prompt({
+        type: 'confirm',
+        name: 'again',
+        message: 'Swap lagi dengan wallet yang sama?',
+        default: false,
+      });
+      keepSwapping = again;
     }
-    const signer = new ethers.Wallet(currentWallet.privateKey, provider);
-    const walletAddress = currentWallet.address;
-    const { sourceIndex } = await inquirer.prompt([
-      { type: 'list', name: 'sourceIndex', message: 'Select the asset you want to swap (source):', choices: tokens.map((t, idx) => ({ name: t.name, value: idx })) }
-    ]);
-    const tokenA = tokens[sourceIndex];
-    const { targetIndex } = await inquirer.prompt([
-      { type: 'list', name: 'targetIndex', message: 'Select the asset you want to receive (target):', choices: tokens.filter((_, idx) => idx !== sourceIndex).map(t => ({ name: t.name, value: tokens.indexOf(t) })) }
-    ]);
-    const tokenB = tokens[targetIndex];
-    const balanceA = await getTokenBalance(tokenA.address, walletAddress);
-    const balanceB = await getTokenBalance(tokenB.address, walletAddress);
-    console.log(`⚡ Current Balances:`.blue);
-    console.log(`${tokenA.name} - ${balanceA}`.cyan);
-    console.log(`${tokenB.name} - ${balanceB}`.cyan);
-    const { amountToSwap } = await inquirer.prompt([
-      { type: 'input', name: 'amountToSwap', message: `How much ${tokenA.name} would you like to swap?` }
-    ]);
-    const decimalsA = await getTokenDecimals(tokenA.address);
-    const amountInBN = ethers.utils.parseUnits(amountToSwap, decimalsA);
-    await checkAndApproveToken(tokenA.address, tokenA.name, signer, amountInBN);
-    const routerContract = new ethers.Contract(ROUTER_CONTRACT, [swapAbi], signer);
-    const swapParams = {
-      tokenIn: tokenA.address,
-      tokenOut: tokenB.address,
-      fee: 500,
-      recipient: walletAddress,
-      amountIn: amountInBN,
-      amountOutMinimum: 0,
-      sqrtPriceLimitX96: 0
-    };
-    let expectedOut = '0';
-    try {
-      const outBN = await routerContract.callStatic.exactInputSingle(swapParams);
-      const decimalsB = await getTokenDecimals(tokenB.address);
-      expectedOut = ethers.utils.formatUnits(outBN, decimalsB);
-      console.log(`💡 Expected Amount to Receive: [${expectedOut} ${tokenB.name}]`.green);
-    } catch (error) {
-      console.error('Error simulating swap:'.red, error);
-      continue;
-    }
-    console.log(`🚀 Swapping [${tokenA.name} -> ${tokenB.name}]...`.yellow);
-    try {
-      const tx = await routerContract.exactInputSingle(swapParams);
-      console.log(`🔗 Swap Tx Sent! ${chain.TX_EXPLORER}${tx.hash}`.magenta);
-      const receipt = await tx.wait();
-      console.log(`✅ Tx Confirmed in Block - ${receipt.blockNumber}`.green);
-    } catch (error) {
-      console.error('Error executing swap:'.red, error);
-      continue;
-    }
-    const newBalanceA = await getTokenBalance(tokenA.address, walletAddress);
-    const newBalanceB = await getTokenBalance(tokenB.address, walletAddress);
-    console.log(`⚡ Current Balances After Swap:`.blue);
-    console.log(`${tokenA.name} - ${newBalanceA}`.cyan);
-    console.log(`${tokenB.name} - ${newBalanceB}\n`.cyan);
-    const { anotherSwap } = await inquirer.prompt([
-      { type: 'confirm', name: 'anotherSwap', message: 'Would you like to perform another swap?', default: true }
-    ]);
-    if (!anotherSwap) { keepSwapping = false; break; }
-    const { useSameWallet } = await inquirer.prompt([
-      { type: 'input', name: 'useSameWallet', message: 'Would you like to use the same wallet? (Y/n)', default: 'Y' }
-    ]);
-    if (useSameWallet.toLowerCase() === 'n') { currentWallet = null; }
   }
-  console.log('\nAll done! Exiting swap script.'.blue);
 }
 
-main();
+main().catch(err => {
+  console.error(err);
+  process.exit(1);
+});
